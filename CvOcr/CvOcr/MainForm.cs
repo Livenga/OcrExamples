@@ -1,24 +1,19 @@
 ﻿namespace CvOcr;
 
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
 using Tesseract;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
 /// <summary></summary>
 public partial class MainForm : Form
 {
-    private Mat? _targetMat = null;
+    private ListViewItem[]? _pictureItems = null;
 
 
     /// <summary></summary>
@@ -30,8 +25,59 @@ public partial class MainForm : Form
 
 #region private Events
     /// <summary></summary>
-    private void OnShown(object source, EventArgs e)
+    private void OnShown(object source, EventArgs e) { }
+
+    /// <summary></summary>
+    private void OnPictureListDragEnter(object source, DragEventArgs e)
     {
+        e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop)
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
+    }
+
+    /// <summary></summary>
+    private void OnPictureListRetrieveVirtualItem(
+            object source,
+            RetrieveVirtualItemEventArgs e)
+    {
+        if(! (_pictureItems?.Any() ?? false) || e.ItemIndex > _pictureItems.Count())
+        {
+            return;
+        }
+
+        e.Item = _pictureItems[e.ItemIndex];
+    }
+
+    /// <summary></summary>
+    private void OnPictureListDragDrop(object source, DragEventArgs e)
+    {
+        var obj = e.Data.GetData(DataFormats.FileDrop);
+
+        if(obj != null
+                && obj is IEnumerable<string> filePaths
+                && filePaths.Any())
+        {
+            AddPictureListItems(filePaths);
+        }
+    }
+
+    /// <summary></summary>
+    private void OnPictureListSelectedIndexChanged(object source, EventArgs e)
+    {
+        targetPicture.Image?.Dispose();
+        targetPicture.Image = null;
+
+        if(pictureList.SelectedIndices.Count == 0)
+        {
+            return;
+        }
+
+        if(_pictureItems != null
+                && _pictureItems[pictureList.SelectedIndices[0]].Tag != null
+                && _pictureItems[pictureList.SelectedIndices[0]].Tag is string path)
+        {
+            targetPicture.Image = Bitmap.FromFile(filename: path);
+        }
     }
 
     /// <summary></summary>
@@ -40,34 +86,13 @@ public partial class MainForm : Form
         using(var dlg = new OpenFileDialog())
         {
             dlg.Filter = "画像ファイル(*.png;*.jpg;*.bmp)|*.png;*.jpg;*.bmp|全てのファイル(*.*)|*.*";
-            dlg.FilterIndex = 0;
+            dlg.FilterIndex      = 0;
             dlg.RestoreDirectory = true;
-            dlg.Multiselect = false;
+            dlg.Multiselect      = true;
 
             if(DialogResult.OK == dlg.ShowDialog(this))
             {
-                _targetMat?.Dispose();
-                _targetMat = null;
-
-                pathText.Text = dlg.FileName;
-
-                try
-                {
-                    _targetMat = Cv2.ImRead(fileName: pathText.Text);
-                    targetPicture.Image = BitmapConverter.ToBitmap(src: _targetMat);
-                }
-                catch(Exception ex)
-                {
-#if DEBUG
-                    Debug.WriteLine($"ERROR | {ex.GetType().FullName} {ex.Message}");
-                    Debug.WriteLine(ex.StackTrace);
-                    
-                    if(ex.InnerException != null)
-                    {
-                        Debug.WriteLine($"\t{ex.InnerException.Message}");
-                    }
-#endif
-                }
+                AddPictureListItems(dlg.FileNames);
             }
         }
     }
@@ -75,28 +100,59 @@ public partial class MainForm : Form
     /// <summary></summary>
     private void OnExecuteClick(object source, EventArgs e)
     {
-        try
+        if(targetPicture?.Image is Bitmap bmp)
         {
-            if(targetPicture.Image is Bitmap bitmap)
+            string? text = null;
+            try
             {
-                extractedText.Text = ExecuteOcr(bitmap) ?? string.Empty;
+                text = ExecuteOcr(bmp);
             }
-        }
-        catch(Exception ex)
-        {
+            catch(Exception ex)
+            {
 #if DEBUG
-            Debug.WriteLine($"ERROR | {ex.GetType().FullName} {ex.Message}");
-            Debug.WriteLine(ex.StackTrace);
+                Debug.WriteLine($"ERROR | {ex.GetType().FullName} {ex.Message}");
+                Debug.WriteLine(ex.StackTrace);
 #endif
+
+                MessageBox.Show(
+                        caption: "エラー",
+                        text:    "テキスト抽出失敗.\n" + ex.Message,
+                        icon:    MessageBoxIcon.Error,
+                        buttons: MessageBoxButtons.OK);
+            }
+            finally
+            {
+                extractText.Text      = text ?? "(失敗)";
+                extractText.ForeColor = (text != null) ? Color.Blue : Color.Coral;
+            }
         }
     }
 #endregion private Events
+    /// <summary></summary>
+    private void AddPictureListItems(IEnumerable<string> filePaths)
+    {
+        List<ListViewItem> items = new ();
+        if(_pictureItems?.Any() ?? false)
+            items.AddRange(_pictureItems);
+
+        // 重複確認はしない.
+        foreach(var filePath in filePaths)
+        {
+            items.Add(new ListViewItem(
+                        new string[] { Path.GetFileName(filePath), filePath }) { Name = filePath, Tag = filePath });
+        }
+
+        _pictureItems = items.ToArray();
+        pictureList.VirtualListSize = _pictureItems.Length;
+        pictureList.Refresh();
+    }
 
     /// <summary></summary>
     private string? ExecuteOcr(Bitmap bitmap)
     {
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         using var tesseract = new TesseractEngine(
-                datapath: @"C:\Users\mynah\AppData\Local\Programs\Tesseract-OCR\tessdata",
+                datapath: Path.Combine(local, "Programs", "Tesseract-OCR", "tessdata"),
                 language: "jpn");
 
         //tesseract.SetVariable(name: "tessedit_char_whitelist", "");
