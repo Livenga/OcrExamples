@@ -77,6 +77,8 @@ public partial class MainForm : Form
                 && _pictureItems[pictureList.SelectedIndices[0]].Tag is string path)
         {
             targetPicture.Image = Bitmap.FromFile(filename: path);
+            var size = targetPicture.Image.Size;
+            messageStatusLabel.Text = $"Size: {size.Width}x{size.Height}";
         }
     }
 
@@ -98,10 +100,41 @@ public partial class MainForm : Form
     }
 
     /// <summary></summary>
+    private void OnPictureListClearMenuClick(object source, EventArgs e)
+    {
+    }
+
+    /// <summary></summary>
+    private void OnPictureListClearAllMenuClick(object source, EventArgs e)
+    {
+        _pictureItems = null;
+        pictureList.VirtualListSize = 0;
+    }
+
+    /// <summary></summary>
     private void OnExecuteClick(object source, EventArgs e)
     {
-        if(targetPicture?.Image is Bitmap bmp)
+        if(_pictureItems == null
+                || ! _pictureItems.Any()
+                || pictureList.SelectedIndices.Count == 0)
         {
+            MessageBox.Show(
+                    caption: "警告",
+                    text:    "処理対象の画像が選択されていません.",
+                    icon:    MessageBoxIcon.Warning,
+                    buttons: MessageBoxButtons.OK);
+
+            return;
+        }
+
+        var tag = _pictureItems[pictureList.SelectedIndices[0]].Tag;
+        executeButton.Enabled = false;
+        extractText.Enabled   = false;
+        if(tag != null && tag is string path)
+        {
+            using var bmp = new Bitmap(filename: path);
+            messageStatusLabel.Text = "処理中...";
+
             string? text = null;
             try
             {
@@ -122,8 +155,13 @@ public partial class MainForm : Form
             }
             finally
             {
+                messageStatusLabel.Text = "処理終了";
+
                 extractText.Text      = text ?? "(失敗)";
                 extractText.ForeColor = (text != null) ? Color.Blue : Color.Coral;
+
+                executeButton.Enabled = true;
+                extractText.Enabled   = true;
             }
         }
     }

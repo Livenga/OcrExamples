@@ -28,17 +28,25 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
+            this.messageStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.pictureList = new System.Windows.Forms.ListView();
             this.fileNameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pathHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.pictureListContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.pictureListRemoveMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.pictureListRemoveAllMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.pictureGroup = new System.Windows.Forms.GroupBox();
             this.extractText = new System.Windows.Forms.TextBox();
             this.executeButton = new System.Windows.Forms.Button();
             this.targetPicture = new System.Windows.Forms.PictureBox();
+            this.messageLabel = new System.Windows.Forms.Label();
             this.headerLabel = new System.Windows.Forms.Label();
             this.chooseButton = new System.Windows.Forms.Button();
+            this.statusStrip.SuspendLayout();
+            this.pictureListContextMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
@@ -49,11 +57,20 @@
             // 
             // statusStrip
             // 
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.messageStatusLabel});
             this.statusStrip.Location = new System.Drawing.Point(0, 579);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(944, 22);
             this.statusStrip.TabIndex = 1;
             this.statusStrip.Text = "statusStrip1";
+            // 
+            // messageStatusLabel
+            // 
+            this.messageStatusLabel.ForeColor = System.Drawing.Color.Blue;
+            this.messageStatusLabel.Name = "messageStatusLabel";
+            this.messageStatusLabel.Size = new System.Drawing.Size(14, 17);
+            this.messageStatusLabel.Text = "#";
             // 
             // pictureList
             // 
@@ -64,12 +81,13 @@
             this.pictureList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.fileNameHeader,
             this.pathHeader});
+            this.pictureList.ContextMenuStrip = this.pictureListContextMenu;
             this.pictureList.FullRowSelect = true;
             this.pictureList.GridLines = true;
             this.pictureList.HideSelection = false;
-            this.pictureList.Location = new System.Drawing.Point(12, 12);
+            this.pictureList.Location = new System.Drawing.Point(12, 57);
             this.pictureList.Name = "pictureList";
-            this.pictureList.Size = new System.Drawing.Size(602, 552);
+            this.pictureList.Size = new System.Drawing.Size(397, 507);
             this.pictureList.TabIndex = 3;
             this.pictureList.UseCompatibleStateImageBehavior = false;
             this.pictureList.View = System.Windows.Forms.View.Details;
@@ -89,24 +107,48 @@
             this.pathHeader.Text = "パス";
             this.pathHeader.Width = 316;
             // 
+            // pictureListContextMenu
+            // 
+            this.pictureListContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.pictureListRemoveMenu,
+            this.pictureListRemoveAllMenu});
+            this.pictureListContextMenu.Name = "pictureListContextMenu";
+            this.pictureListContextMenu.Size = new System.Drawing.Size(181, 70);
+            // 
+            // pictureListRemoveMenu
+            // 
+            this.pictureListRemoveMenu.Enabled = false;
+            this.pictureListRemoveMenu.Name = "pictureListRemoveMenu";
+            this.pictureListRemoveMenu.Size = new System.Drawing.Size(180, 22);
+            this.pictureListRemoveMenu.Text = "除外(&R)";
+            this.pictureListRemoveMenu.Click += new System.EventHandler(this.OnPictureListClearMenuClick);
+            // 
+            // pictureListRemoveAllMenu
+            // 
+            this.pictureListRemoveAllMenu.Name = "pictureListRemoveAllMenu";
+            this.pictureListRemoveAllMenu.Size = new System.Drawing.Size(180, 22);
+            this.pictureListRemoveAllMenu.Text = "全て除外(&A)";
+            this.pictureListRemoveAllMenu.Click += new System.EventHandler(this.OnPictureListClearAllMenuClick);
+            // 
             // splitContainer
             // 
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
             this.splitContainer.Location = new System.Drawing.Point(0, 0);
             this.splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
             // 
             this.splitContainer.Panel1.Controls.Add(this.pictureGroup);
-            this.splitContainer.Panel1.Controls.Add(this.headerLabel);
-            this.splitContainer.Panel1.Controls.Add(this.chooseButton);
             // 
             // splitContainer.Panel2
             // 
+            this.splitContainer.Panel2.Controls.Add(this.messageLabel);
             this.splitContainer.Panel2.Controls.Add(this.pictureList);
+            this.splitContainer.Panel2.Controls.Add(this.headerLabel);
+            this.splitContainer.Panel2.Controls.Add(this.chooseButton);
             this.splitContainer.Size = new System.Drawing.Size(944, 579);
-            this.splitContainer.SplitterDistance = 315;
+            this.splitContainer.SplitterDistance = 520;
             this.splitContainer.TabIndex = 0;
             // 
             // pictureGroup
@@ -117,10 +159,10 @@
             this.pictureGroup.Controls.Add(this.extractText);
             this.pictureGroup.Controls.Add(this.executeButton);
             this.pictureGroup.Controls.Add(this.targetPicture);
-            this.pictureGroup.Location = new System.Drawing.Point(12, 65);
+            this.pictureGroup.Location = new System.Drawing.Point(12, 4);
             this.pictureGroup.Name = "pictureGroup";
-            this.pictureGroup.Size = new System.Drawing.Size(299, 511);
-            this.pictureGroup.TabIndex = 5;
+            this.pictureGroup.Size = new System.Drawing.Size(504, 572);
+            this.pictureGroup.TabIndex = 0;
             this.pictureGroup.TabStop = false;
             this.pictureGroup.Text = "Picture";
             // 
@@ -128,20 +170,21 @@
             // 
             this.extractText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.extractText.Location = new System.Drawing.Point(0, 224);
+            this.extractText.Location = new System.Drawing.Point(0, 260);
             this.extractText.Multiline = true;
             this.extractText.Name = "extractText";
-            this.extractText.Size = new System.Drawing.Size(293, 281);
+            this.extractText.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.extractText.Size = new System.Drawing.Size(498, 306);
             this.extractText.TabIndex = 2;
             // 
             // executeButton
             // 
             this.executeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.executeButton.Location = new System.Drawing.Point(193, 190);
+            this.executeButton.Location = new System.Drawing.Point(398, 226);
             this.executeButton.Name = "executeButton";
             this.executeButton.Size = new System.Drawing.Size(100, 28);
             this.executeButton.TabIndex = 1;
-            this.executeButton.Text = "実行(&E)";
+            this.executeButton.Text = "OCR実行(&E)";
             this.executeButton.UseVisualStyleBackColor = true;
             this.executeButton.Click += new System.EventHandler(this.OnExecuteClick);
             // 
@@ -150,29 +193,39 @@
             this.targetPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.targetPicture.BackColor = System.Drawing.SystemColors.ControlDark;
             this.targetPicture.Location = new System.Drawing.Point(6, 24);
             this.targetPicture.Name = "targetPicture";
-            this.targetPicture.Size = new System.Drawing.Size(287, 160);
+            this.targetPicture.Size = new System.Drawing.Size(492, 196);
             this.targetPicture.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.targetPicture.TabIndex = 0;
             this.targetPicture.TabStop = false;
             // 
+            // messageLabel
+            // 
+            this.messageLabel.AutoSize = true;
+            this.messageLabel.ForeColor = System.Drawing.Color.Blue;
+            this.messageLabel.Location = new System.Drawing.Point(9, 36);
+            this.messageLabel.Name = "messageLabel";
+            this.messageLabel.Size = new System.Drawing.Size(365, 18);
+            this.messageLabel.TabIndex = 2;
+            this.messageLabel.Text = "リストに対してドラッグ && ドロップでもファイルを追加できます.";
+            // 
             // headerLabel
             // 
             this.headerLabel.AutoSize = true;
-            this.headerLabel.Location = new System.Drawing.Point(12, 9);
+            this.headerLabel.Location = new System.Drawing.Point(9, 9);
             this.headerLabel.Name = "headerLabel";
-            this.headerLabel.Size = new System.Drawing.Size(188, 18);
-            this.headerLabel.TabIndex = 3;
-            this.headerLabel.Text = "##################";
+            this.headerLabel.Size = new System.Drawing.Size(104, 18);
+            this.headerLabel.TabIndex = 0;
+            this.headerLabel.Text = "画像ファイル選択";
             // 
             // chooseButton
             // 
-            this.chooseButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chooseButton.Location = new System.Drawing.Point(206, 31);
+            this.chooseButton.Location = new System.Drawing.Point(119, 4);
             this.chooseButton.Name = "chooseButton";
             this.chooseButton.Size = new System.Drawing.Size(100, 28);
-            this.chooseButton.TabIndex = 4;
+            this.chooseButton.TabIndex = 1;
             this.chooseButton.Text = "選択(&C)";
             this.chooseButton.UseVisualStyleBackColor = true;
             this.chooseButton.Click += new System.EventHandler(this.OnPictureChooseClick);
@@ -188,9 +241,12 @@
             this.Name = "MainForm";
             this.Text = "CvOcr";
             this.Shown += new System.EventHandler(this.OnShown);
+            this.statusStrip.ResumeLayout(false);
+            this.statusStrip.PerformLayout();
+            this.pictureListContextMenu.ResumeLayout(false);
             this.splitContainer.Panel1.ResumeLayout(false);
-            this.splitContainer.Panel1.PerformLayout();
             this.splitContainer.Panel2.ResumeLayout(false);
+            this.splitContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
             this.splitContainer.ResumeLayout(false);
             this.pictureGroup.ResumeLayout(false);
@@ -213,6 +269,11 @@
         private System.Windows.Forms.Button chooseButton;
         private System.Windows.Forms.ColumnHeader fileNameHeader;
         private System.Windows.Forms.ColumnHeader pathHeader;
+        private System.Windows.Forms.Label messageLabel;
+        private System.Windows.Forms.ToolStripStatusLabel messageStatusLabel;
+        private System.Windows.Forms.ContextMenuStrip pictureListContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem pictureListRemoveAllMenu;
+        private System.Windows.Forms.ToolStripMenuItem pictureListRemoveMenu;
     }
 }
 
